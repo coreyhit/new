@@ -1,0 +1,123 @@
+import pandas as pd
+import os
+
+# Function to read all CSV files from the 'temperatures' folder
+def get_all_temperature_data():
+    all_data = pd.DataFrame()
+    temp_folder = 'temperatures'
+    
+    # Check if the temperatures folder exists
+    if not os.path.exists(temp_folder):
+        print(f"Error: The '{temp_folder}' folder was not found.")
+        return None
+
+    # Loop through each file in the folder
+    for filename in os.listdir(temp_folder):
+        if filename.endswith('.csv'):
+            filepath = os.path.join(temp_folder, filename)
+            try:
+                # Read the CSV file into a DataFrame
+                df = pd.read_csv(filepath)
+                # Append to the main DataFrame
+                all_data = pd.concat([all_data, df], ignore_index=True)
+            except Exception as e:
+                print(f"Error reading file {filename}: {e}")
+                
+    # Convert 'Date' column to datetime objects
+    all_data['Date'] = pd.to_datetime(all_data['Date'])
+    # Convert 'Temperature_Celsius' to numeric and handle NaN values
+    all_data['Temperature_Celsius'] = pd.to_numeric(all_data['Temperature_Celsius'], errors='coerce')
+    
+    return all_data
+
+# Function to calculate the average temperature for each season
+def seasonal_average(df):
+    # Your code for this function goes here.
+    # [cite_start]The Australian seasons are: Summer (Dec-Feb), Autumn (Mar-May), Winter (Jun-Aug), Spring (Sep-Nov) [cite: 39]
+    # [cite_start]You need to calculate the average temperature for each season across ALL stations and ALL years [cite: 38]
+    # [cite_start]Then, save the results to "average_temp.txt" in the format "Summer: 28.5°C" [cite: 38, 40]
+    
+    # You can start by extracting the month from the Date column
+    df['Month'] = df['Date'].dt.month
+    
+    # Now, implement the logic to assign a season based on the month
+    def get_season(month):
+        # Your if-elif-else logic for seasons
+        pass
+
+    df['Season'] = df['Month'].apply(get_season)
+    
+    # Use pandas to group by season and calculate the mean
+    seasonal_averages = df.groupby('Season')['Temperature_Celsius'].mean()
+    
+    # Write the results to the output file
+    with open('average_temp.txt', 'w') as f:
+        # Your code to write the results in the correct format to the file
+        pass
+
+# Function to find the station(s) with the largest temperature range
+def temperature_range(df):
+    # Your code for this function goes here.
+    # [cite_start]Find the station(s) with the largest temperature range [cite: 41]
+    # [cite_start]The range is the difference between the highest and lowest temperature ever recorded at that station [cite: 41]
+    # [cite_start]Save the results to "largest_temp_range_station.txt" [cite: 42]
+    # [cite_start]The output should be formatted as "Station ABC: Range 45.2°C (Max: 48.3°C, Min: 3.1°C)" [cite: 43]
+    # [cite_start]If multiple stations tie, list all of them [cite: 43]
+    
+    # You can start by grouping the data by station and calculating min/max temperatures
+    station_stats = df.groupby('Station_Name')['Temperature_Celsius'].agg(['min', 'max'])
+    
+    # Calculate the temperature range for each station
+    station_stats['range'] = station_stats['max'] - station_stats['min']
+    
+    # Find the largest temperature range
+    max_range = station_stats['range'].max()
+    
+    # Find all stations that have this maximum range
+    stations_with_max_range = station_stats[station_stats['range'] == max_range]
+    
+    # Write the results to the output file
+    with open('largest_temp_range_station.txt', 'w') as f:
+        # Your code to iterate through stations_with_max_range and write to the file
+        pass
+
+# Function to find the most stable and most variable stations
+def temperature_stability(df):
+    # Your code for this function goes here.
+    # [cite_start]Find which station(s) have the most stable temperatures (smallest standard deviation) [cite: 44, 45]
+    # [cite_start]Find which station(s) have the most variable temperatures (largest standard deviation) [cite: 45]
+    # [cite_start]Save the results to "temperature_stability_stations.txt" [cite: 45]
+    # [cite_start]The output format should be as specified in the assignment [cite: 47, 48]
+    # [cite_start]If multiple stations tie, list all of them [cite: 49]
+    
+    # You can start by grouping by station and calculating the standard deviation
+    station_stddev = df.groupby('Station_Name')['Temperature_Celsius'].std()
+    
+    # Find the smallest and largest standard deviation values
+    min_stddev = station_stddev.min()
+    max_stddev = station_stddev.max()
+    
+    # Find all stations with the most stable (min) and most variable (max) temperatures
+    most_stable_stations = station_stddev[station_stddev == min_stddev]
+    most_variable_stations = station_stddev[station_stddev == max_stddev]
+    
+    # Write the results to the output file
+    with open('temperature_stability_stations.txt', 'w') as f:
+        f.write("Most Stable:\n")
+        # Your code to iterate through most_stable_stations and write to the file
+        f.write("\nMost Variable:\n")
+        # Your code to iterate through most_variable_stations and write to the file
+        pass
+
+# Main execution block
+if __name__ == "__main__":
+    print("Starting temperature data analysis...")
+    data = get_all_temperature_data()
+    
+    if data is not None and not data.empty:
+        seasonal_average(data)
+        temperature_range(data)
+        temperature_stability(data)
+        print("Analysis complete. Results saved to files.")
+    else:
+        print("Could not process data. Please check the 'temperatures' folder and its contents.")
